@@ -65,14 +65,16 @@ const information = defineCollection({
  * Represents documentation or instruction content
  */
 const instruction = defineCollection({
-	// Load all markdown files except those starting with underscore
-	loader: glob({ pattern: ["**/*.md", "!**/_*.md", "!**/_*/*.md"], base: "./src/content/instruction" }),
+	// Load all markdown files from zh-cn and en directories, except those starting with underscore
+	loader: glob({ pattern: ["zh-cn/**/*.md", "en/**/*.md", "!**/_*.md", "!**/_*/*.md"], base: "./src/content/instruction" }),
 	schema: z.object({
 		title: z.string(), // Instruction title (required)
 		timestamp: z.date(), // Publication date (required)
+		series: z.string().optional(), // Series name for grouped posts
 		tags: z.array(z.string()).optional(), // Array of topic tags
 		description: z.string().optional(), // Brief description
 		sensitive: z.boolean().default(false), // Marks content as sensitive
+		toc: z.boolean().default(false), // Whether to show table of contents
 		top: z.number().int().nonnegative().default(0), // Top priority for sorting (higher is more important)
 		draft: z.boolean().default(false) // Draft status
 	})

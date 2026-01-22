@@ -56,7 +56,8 @@ const config = siteConfig({
 	},
 	pagination: {
 		note: 15,
-		jotting: 24
+		jotting: 24,
+		instruction: 15
 	},
 	heatmap: {
 		unit: "day",

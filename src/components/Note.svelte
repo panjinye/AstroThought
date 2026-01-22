@@ -8,7 +8,7 @@ import Time from "$utils/time";
 import Icon from "$components/Icon.svelte";
 import i18nit from "$i18n";
 
-let { locale, notes, series: seriesList, tags: tagList }: { locale: string; notes: any[]; series: string[]; tags: string[] } = $props();
+let { locale, notes, series: seriesList, tags: tagList, type = "note" }: { locale: string; notes: any[]; series: string[]; tags: string[]; type?: string } = $props();
 
 const t = $derived(i18nit(locale));
 
@@ -107,7 +107,7 @@ onMount(() => {
 							<button onclick={() => chooseSeries(note.data.series, true)}>{note.data.series}</button>
 							<span aria-hidden="true">|</span>
 						{/if}
-						<a href={getRelativeLocaleUrl(locale, `/note/${monolocale ? note.id : note.id.split("/").slice(1).join("/")}`)} class="link">{note.data.title}</a>
+						<a href={getRelativeLocaleUrl(locale, `/${type}/${monolocale ? note.id : note.id.split("/").slice(1).join("/")}`)} class="link">{note.data.title}</a>
 					</div>
 					<span class="inline-flex items-center sm:justify-end gap-1 flex-wrap content-start sm:ms-auto">
 						{#each note.data.tags as tag}

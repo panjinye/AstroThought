@@ -1,0 +1,122 @@
+---
+// 此处为原有脚本区域代码，保持不变（无需修改）
+import { render, getCollection } from "astro:content";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import config, { monolocale } from "$config";
+import Time from "$utils/time";
+import Base from "$layouts/Base.astro";
+import Heatmap from "$components/Heatmap.astro";
+import Logo from "$icons/site-logo.svg";
+import i18nit from "$i18n";
+
+export async function getStaticPaths() {
+	const paths = config.i18n.locales.map(locale => ({ 
+		params: { locale: config.i18n.defaultLocale === locale ? undefined : locale } 
+	}));
+
+	// 新增：追加 /zh-cn 静态路径
+	const targetLocale = 'zh-cn';
+	const hasZhCnPath = paths.some(path => path.params?.locale === targetLocale);
+	if (!hasZhCnPath) {
+		paths.push({ params: { locale: targetLocale } });
+	}
+
+	return paths;
+}
+
+const { locale = config.i18n.defaultLocale } = Astro.params;
+const t = i18nit(locale);
+
+// 原有内容获取逻辑，保持不变
+const prefaces = (
+	await getCollection("preface", preface => {
+		if (monolocale) return true;
+		const [language, id] = preface.id.split("/");
+		preface.id = id;
+		return language === locale;
+	})
+).sort((a, b) => b.data.timestamp.getTime() - a.data.timestamp.getTime());
+
+const notes = await getCollection("note", note => {
+	Reflect.set(note, "type", "note");
+	let published = !note.data.draft;
+	let localed = monolocale || note.id.split("/")[0] === locale;
+	return published && localed;
+});
+
+const jottings = await getCollection("jotting", jotting => {
+	Reflect.set(jotting, "type", "jotting");
+	let localed = monolocale || jotting.id.split("/")[0] === locale;
+	return !jotting.data.draft && localed;
+});
+
+let items = [];
+const sections = config.latest || "*";
+if (sections === "*" || sections.includes("note")) items = items.concat(notes);
+if (sections === "*" || sections.includes("jotting")) items = items.concat(jottings);
+// Get latest 3 items
+const latestItems = items.sort((a, b) => b.data.timestamp.getTime() - a.data.timestamp.getTime()).slice(0, 3);
+const preface = prefaces[0];
+const { Content } = preface ? await render(preface) : ({} as any);
+---
+
+<!-- 模板区域：修正 if 语法（核心修复，替换原生 if 为 Astro 支持的条件渲染） -->
+<Base title={t("navigation.home")} {locale}>
+	<main class="flex flex-col gap-5 sm:gap-20 grow">
+		<header class="flex items-center justify-center flex-wrap-reverse grow-[0.6]">
+			{/* 修复1：简单条件 - 逻辑与 && （原有 if 改为 Astro 支持的语法） */}
+			{config.prologue && (
+				<article class="me-auto font-cursive font-thin text-xl sm:text-2xl leading-loose whitespace-pre-line">
+					{config.prologue}
+				</article>
+			)}
+			<Logo width={100} />
+		</header>
+
+		{/* 修复2：简单条件 - 逻辑与 && （原有 if 改为 Astro 支持的语法） */}
+		{preface && (
+			<section class="flex flex-col">
+				<article class="markdown">
+					<Content />
+				</article>
+				<a href={getRelativeLocaleUrl(locale, "/preface")} class="self-end my-2 text-sm text-secondary">
+					—— {Time.toLocaleDateString(preface.data.timestamp, locale)}
+				</a>
+			</section>
+		)}
+
+		{/* Display latest items section with 3 items */}
+		{latestItems.length > 0 && (
+			<footer class="flex items-center justify-center flex-wrap-reverse gap-10">
+				<blockquote class="grow flex flex-col">
+					<h4>{t("home.latest")}</h4>
+					<div class="space-y-4 mt-3">
+						{/* Loop through latest items */}
+						{latestItems.map(item => (
+							<div class="flex flex-col gap-1">
+								<div class="flex flex-col sm:flex-row justify-between gap-1">
+									<a href={getRelativeLocaleUrl(locale, `/${item.type}/${monolocale ? item.id : item.id.split("/").slice(1).join("/")}`)} class="link">
+										{item.data.series && `${item.data.series} | `}
+										{item.data.title}
+									</a>
+									<div class="flex gap-1 flex-wrap">
+										{item.data.tags?.map(tag => (
+											<a href={`${getRelativeLocaleUrl(locale, `/${item.type}`)}?tag=${encodeURIComponent(tag)}`} class="text-remark text-sm link">
+												#{tag}
+											</a>
+										))}
+									</div>
+								</div>
+								<time datetime={item.data.timestamp.toISOString()} class="text-remark font-mono text-xs">
+									{Time.toString(item.data.timestamp)}
+								</time>
+							</div>
+						))}
+					</div>
+				</blockquote>
+
+				<Heatmap {locale} {notes} {jottings} />
+			</footer>
+		)}
+	</main>
+</Base>

@@ -27,6 +27,16 @@ interface SiteConfigOptions<Locales extends readonly string[] = readonly string[
 		link?: string;
 	};
 
+	/** Social Media Links */
+	social?: Array<{
+		/** Social Media Platform Name */
+		name: string;
+		/** Social Media Profile URL */
+		url: string;
+		/** Icon Name (from Icon component) */
+		icon: string;
+	}>;
+
 	/** Site Description */
 	description: string;
 

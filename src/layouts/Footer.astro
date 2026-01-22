@@ -4,8 +4,10 @@ import { getRelativeLocaleUrl } from "astro:i18n";
 import { monolocale } from "$config";
 import Icon from "$components/Icon.svelte";
 import i18nit from "$i18n";
+import config from "$config";
 
 let { locale, author, copyright } = Astro.props;
+const social = config.social || [];
 
 const t = i18nit(locale);
 
@@ -118,6 +120,16 @@ const policy = await getEntry("information", `${localePrefix}policy`);
 				<a href={getRelativeLocaleUrl(locale, "/policy")} aria-label="Policy" class="inline-flex">
 					<Icon name="lucide--scale" title={t("navigation.policy")} />
 				</a>
+			]
+		}
+		{
+			social.length > 0 && [
+				<span>·</span>,
+				...social.map(item => [
+					<a href={item.url} target="_blank" rel="noopener noreferrer" aria-label={item.name} class="inline-flex">
+						<Icon name={item.icon} title={item.name} />
+					</a>
+				])
 			]
 		}
 	</div>

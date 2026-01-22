@@ -8,6 +8,43 @@ const config = siteConfig({
 		email: "ficor@qq.com",
 		link: "https://lawpan.CC"
 	},
+	social: [
+		{
+			name: "Mastodon",
+			url: "https://mastodon.social/@ficor",
+			icon: "simple-icons--mastodon"
+		},
+		{
+			name: "邮箱",
+			url: "mailto:ficor@qq.com",
+			icon: "lucide--mail"
+		},
+		{
+			name: "GitHub",
+			url: "https://github.com/panjinye",
+			icon: "simple-icons--github"
+		},
+		{
+			name: "Twitter",
+			url: "https://twitter.com/JinyePan",
+			icon: "simple-icons--twitter"
+		},
+		{
+			name: "316160777",
+			url: "https://qq.com",
+			icon: "simple-icons--qq"
+		},
+		{
+			name: "微信",
+			url: "https://weixin.qq.com",
+			icon: "simple-icons--wechat"
+		},
+		{
+			name: "RSS",
+			url: "/feed.xml",
+			icon: "lucide--rss"
+		}
+	],
 	description: "在路上的思绪与脚印",
 	copyright: {
 		type: "CC BY-NC-ND 4.0",

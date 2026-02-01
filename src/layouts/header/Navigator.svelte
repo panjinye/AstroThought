@@ -94,5 +94,16 @@ onMount(() => {
 				</div>
 			</Menu>
 		{/if}
+
+		{#if config.rocketMenu && config.rocketMenu.length > 0}
+			<Menu label="Rocket menu">
+				{#snippet trigger()}<Icon name="lucide--rocket" />{/snippet}
+				<div data-no-swup class="contents">
+					{#each config.rocketMenu as item}
+						<a href={item.url} target="_blank" rel="noopener noreferrer">{item.name}</a>
+					{/each}
+				</div>
+			</Menu>
+		{/if}
 	</footer>
 </nav>

@@ -6,7 +6,7 @@ const config = siteConfig({
 	author: {
 		name: "Ficor",
 		email: "ficor@qq.com",
-		link: "https://lawpan.CC"
+		link: "https://vii.ink"
 	},
 	social: [
 		{
@@ -43,6 +43,24 @@ const config = siteConfig({
 			name: "RSS",
 			url: "/feed.xml",
 			icon: "lucide--rss"
+		}
+	],
+	rocketMenu: [
+		{
+			name: "开往",
+			url: "https://www.travellings.cn/plain.html"
+		},
+		{
+			name: "虫洞",
+			url: "https://www.foreverblog.cn/go.html"
+		},
+		{
+			name: "笔墨迹",
+			url: "https://blogscn.fun/random.html"
+		},
+		{
+			name: "空间穿梭",
+			url: "https://www.blogsclub.org/go"
 		}
 	],
 	description: "在路上的思绪与脚印",

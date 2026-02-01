@@ -37,6 +37,14 @@ interface SiteConfigOptions<Locales extends readonly string[] = readonly string[
 		icon: string;
 	}>;
 
+	/** Rocket Menu Configuration */
+	rocketMenu?: Array<{
+		/** Menu Item Name */
+		name: string;
+		/** Menu Item URL */
+		url: string;
+	}>;
+
 	/** Site Description */
 	description: string;
 

@@ -13,11 +13,26 @@ export async function getStaticPaths() {
 
 const { locale = config.i18n.defaultLocale } = Astro.params;
 const t = i18nit(locale);
+
+// 服务器端预加载友圈数据
+let preloadedData = null;
+try {
+	const response = await fetch(`${Astro.site}${locale !== config.i18n.defaultLocale ? `/${locale}` : ""}/api/friend-circle?locale=${locale}`, {
+		headers: {
+			"Cache-Control": "max-age=1800"
+		}
+	});
+	if (response.ok) {
+		preloadedData = await response.json();
+	}
+} catch (error) {
+	console.error("Failed to preload friend circle data:", error);
+}
 ---
 
 <Base title={t("navigation.friendCircle")} {locale}>
 	<main class="friend-circle-page">
-		<FriendCircle {locale} client:load />
+		<FriendCircle {locale} {preloadedData} client:load />
 	</main>
 </Base>
 

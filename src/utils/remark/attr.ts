@@ -39,7 +39,8 @@ const parseAttributes = (content: string): Record<string, string> => {
 	const attributes: Record<string, string> = {};
 
 	// Create a new regex instance for each call to avoid state issues
-	const regex = /(?:#(?<id>[^#\s.}]+))|(?:\.(?<class>[^#\s.}]+))|(?<key>[a-zA-Z0-9_-]+)(?:=(?:(?<quote>[\'"])(?<qvalue>.*?)\k<quote>|(?<value>[^#\s.}]+)))?/g;
+	const regex =
+		/(?:#(?<id>[^#\s.}]+))|(?:\.(?<class>[^#\s.}]+))|(?<key>[a-zA-Z0-9_-]+)(?:=(?:(?<quote>['"])(?<qvalue>.*?)\k<quote>|(?<value>[^#\s.}]+)))?/g;
 
 	let match: RegExpExecArray | null;
 	while ((match = regex.exec(content)) !== null) {

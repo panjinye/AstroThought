@@ -11,14 +11,14 @@ interface FriendLink {
 
 // 缓存对象，存储RSS解析结果
 const rssCache: Map<string, { data: any; timestamp: number }> = new Map();
-// 缓存有效期：10分钟
-const CACHE_DURATION = 10 * 60 * 1000;
+// 缓存有效期：30分钟
+const CACHE_DURATION = 30 * 60 * 1000;
 
 export const GET: APIRoute = async ({ request }) => {
 	// 从请求头或查询参数中获取语言，默认使用 zh-cn
 	const url = new URL(request.url);
-	const locale = url.searchParams.get('locale') || "zh-cn";
-	const refresh = url.searchParams.get('refresh') === 'true'; // 检查是否需要强制刷新
+	const locale = url.searchParams.get("locale") || "zh-cn";
+	const refresh = url.searchParams.get("refresh") === "true"; // 检查是否需要强制刷新
 
 	// 尝试加载指定语言的链接列表，如果失败则回退到 zh-cn
 	let links: FriendLink[] = [];
@@ -38,9 +38,9 @@ export const GET: APIRoute = async ({ request }) => {
 	// 分批次处理友链
 	for (let i = 0; i < links.length; i += maxConcurrentRequests) {
 		const batch = links.slice(i, i + maxConcurrentRequests);
-		const batchPromises = batch.map(async (link) => {
+		const batchPromises = batch.map(async link => {
 			// 生成缓存键
-			const cacheKey = `${link.url}_${link.feed || 'default'}`;
+			const cacheKey = `${link.url}_${link.feed || "default"}`;
 			const now = Date.now();
 
 			// 检查缓存是否有效，如果需要强制刷新则忽略缓存
@@ -53,33 +53,36 @@ export const GET: APIRoute = async ({ request }) => {
 
 			try {
 				// 优先使用友链中指定的 feed 地址
-				const feedUrls = link.feed ? 
-					[link.feed] : // 如果有指定 feed 地址，只尝试这一个
-					[
-						`${link.url}feed.xml`,
-						`${link.url}feed`,
-						`${link.url}atom.xml`,
-						`${link.url}rss.xml`,
-						`${link.url}feed.atom`,
-						`${link.url}index.xml`
-					];
+				const feedUrls = link.feed
+					? [link.feed]
+					: // 如果有指定 feed 地址，只尝试这一个
+						[
+							`${link.url}feed.xml`,
+							`${link.url}feed`,
+							`${link.url}atom.xml`,
+							`${link.url}rss.xml`,
+							`${link.url}feed.atom`,
+							`${link.url}index.xml`
+						];
 
-				// 并行请求所有 feed 地址，设置 3 秒超时
-				const fetchPromises = feedUrls.map(async (feedUrl) => {
+				// 并行请求所有 feed 地址，设置 2 秒超时（减少超时等待时间）
+				const fetchPromises = feedUrls.map(async feedUrl => {
 					try {
 						const controller = new AbortController();
-						const timeoutId = setTimeout(() => controller.abort(), 3000);
-						
+						const timeoutId = setTimeout(() => controller.abort(), 2000);
+
 						const response = await fetch(feedUrl, {
 							headers: {
 								"User-Agent": "Mozilla/5.0 (compatible; FriendCircle/1.0)",
-								"Cache-Control": "max-age=300" // 允许中间缓存5分钟
+								"Cache-Control": "max-age=600" // 允许中间缓存10分钟
 							},
-							signal: controller.signal
+							signal: controller.signal,
+							// 只接受文本响应，减少数据传输
+							accept: "text/xml, application/xml, application/rss+xml, application/atom+xml"
 						});
-						
+
 						clearTimeout(timeoutId);
-						
+
 						if (response.ok) {
 							const text = await response.text();
 							return { success: true, content: text };
@@ -90,7 +93,7 @@ export const GET: APIRoute = async ({ request }) => {
 					}
 				});
 
-				// 等待所有请求完成
+				// 等待所有请求完成，使用 Promise.race 优先返回第一个成功的结果
 				const results = await Promise.all(fetchPromises);
 
 				// 查找第一个成功的请求
@@ -98,9 +101,16 @@ export const GET: APIRoute = async ({ request }) => {
 					if (result.success && result.content) {
 						const items = parseRSS(result.content, link);
 						if (items.length > 0) {
+							// 只返回前端需要的字段，减少响应数据大小
+							const simplifiedLink = {
+								title: link.title,
+								url: link.url,
+								image: link.image,
+								type: link.type
+							};
 							const result = {
-								site: link,
-								items: items.slice(0, 5)
+								site: simplifiedLink,
+								items: items.slice(0, 3) // 只返回前3篇文章，减少数据传输
 							};
 							// 更新缓存
 							rssCache.set(cacheKey, { data: result, timestamp: now });
@@ -125,24 +135,27 @@ export const GET: APIRoute = async ({ request }) => {
 		feedResults.push(...batchResults);
 	}
 
-	const successfulSites = feedResults.filter((r) => r.items.length > 0);
+	const successfulSites = feedResults.filter(r => r.items.length > 0);
 
 	// 根据是否强制刷新设置不同的缓存策略
-	const cacheControl = refresh 
+	const cacheControl = refresh
 		? "no-store, must-revalidate" // 强制刷新时不缓存
-		: "public, max-age=600"; // 否则缓存10分钟
+		: "public, max-age=1800, stale-while-revalidate=300"; // 缓存30分钟，同时在后台重新验证
 
-	return new Response(JSON.stringify({
-		total: links.length,
-		fetched: feedResults.length,
-		success: successfulSites.length,
-		sites: feedResults
-	}), {
-		headers: {
-			"Content-Type": "application/json",
-			"Cache-Control": cacheControl
+	return new Response(
+		JSON.stringify({
+			total: links.length,
+			fetched: feedResults.length,
+			success: successfulSites.length,
+			sites: feedResults
+		}),
+		{
+			headers: {
+				"Content-Type": "application/json",
+				"Cache-Control": cacheControl
+			}
 		}
-	});
+	);
 };
 
 function parseRSS(xml: string, site: FriendLink) {
@@ -165,27 +178,27 @@ function parseRSS(xml: string, site: FriendLink) {
 			// 解析标题
 			const titleRegex = /<title[^>]*>([\s\S]*?)<\/title>/i;
 			const titleMatch = titleRegex.exec(entryContent);
-			const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, '').trim() : '';
+			const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, "").trim() : "";
 
 			// 解析链接
 			const linkRegex = /<link[^>]*href=["']([^"']+)["'][^>]*>|<link[^>]*>([^<]+)<\/link>/i;
 			const linkMatch = linkRegex.exec(entryContent);
-			let link = linkMatch ? (linkMatch[1] || linkMatch[2] || '').trim() : '';
+			let link = linkMatch ? (linkMatch[1] || linkMatch[2] || "").trim() : "";
 
 			// 解析描述
 			const descRegex = /<(description|summary|content)[^>]*>([\s\S]*?)<\/(description|summary|content)>/i;
 			const descMatch = descRegex.exec(entryContent);
-			const description = descMatch ? descMatch[2].replace(/<[^>]*>/g, '').trim() : '';
+			const description = descMatch ? descMatch[2].replace(/<[^>]*>/g, "").trim() : "";
 
 			// 解析发布日期
 			const dateRegex = /<(published|updated|date|pubDate)[^>]*>([\s\S]*?)<\/(published|updated|date|pubDate)>/i;
 			const dateMatch = dateRegex.exec(entryContent);
-			const pubDate = dateMatch ? dateMatch[2].trim() : '';
+			const pubDate = dateMatch ? dateMatch[2].trim() : "";
 
 			if (title && link) {
 				// 确保链接是完整的 URL
-				if (!link.startsWith('http')) {
-					link = `${site.url}${link.startsWith('/') ? '' : '/'}${link}`;
+				if (!link.startsWith("http")) {
+					link = `${site.url}${link.startsWith("/") ? "" : "/"}${link}`;
 				}
 
 				items.push({

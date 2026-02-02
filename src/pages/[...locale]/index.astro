@@ -10,12 +10,12 @@ import Logo from "$icons/site-logo.svg";
 import i18nit from "$i18n";
 
 export async function getStaticPaths() {
-	const paths = config.i18n.locales.map(locale => ({ 
-		params: { locale: config.i18n.defaultLocale === locale ? undefined : locale } 
+	const paths = config.i18n.locales.map(locale => ({
+		params: { locale: config.i18n.defaultLocale === locale ? undefined : locale }
 	}));
 
 	// 新增：追加 /zh-cn 静态路径
-	const targetLocale = 'zh-cn';
+	const targetLocale = "zh-cn";
 	const hasZhCnPath = paths.some(path => path.params?.locale === targetLocale);
 	if (!hasZhCnPath) {
 		paths.push({ params: { locale: targetLocale } });
@@ -50,7 +50,7 @@ const jottings = await getCollection("jotting", jotting => {
 	return !jotting.data.draft && localed;
 });
 
-let items: Array<typeof notes[0] | typeof jottings[0]> = [];
+let items: Array<(typeof notes)[0] | (typeof jottings)[0]> = [];
 const sections = config.latest || "*";
 if (sections === "*" || sections.includes("note")) items = items.concat(notes);
 if (sections === "*" || sections.includes("jotting")) items = items.concat(jottings);

@@ -118,7 +118,7 @@
 		}
 
 		blockquote {
-			border-inline-start: 4px solid var(--shadow-color);
+			border-inline-start: 4px solid #3498db;
 			padding-inline-start: 1em;
 
 			p {

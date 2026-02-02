@@ -8,7 +8,13 @@ import Time from "$utils/time";
 import Icon from "$components/Icon.svelte";
 import i18nit from "$i18n";
 
-let { locale, notes, series: seriesList, tags: tagList, type = "note" }: { locale: string; notes: any[]; series: string[]; tags: string[]; type?: string } = $props();
+let {
+	locale,
+	notes,
+	series: seriesList,
+	tags: tagList,
+	type = "note"
+}: { locale: string; notes: any[]; series: string[]; tags: string[]; type?: string } = $props();
 
 const t = $derived(i18nit(locale));
 

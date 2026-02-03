@@ -26,17 +26,16 @@
 		"url": "https://github.com/tuyuritio"
 	},
 	"scripts": {
-		"new": "tsx --loader esm-loader-yaml scripts/new.ts",
-		"dev": "astro dev",
-		"check": "astro check",
-		"build": "astro build",
-		"preview": "astro preview",
-		"format": "biome format --write",
-		"lint": "biome lint",
-		"count": "git log --pretty=tformat: --numstat | grep -v package | awk '{ A += $1; S += $2; T += $1 - $2 } END { printf \"+ %s\tLines\\n- %s\tLines\\n= %s\tLines\\n\", A, S, T }'",
-		"prepare": "husky",
-		"preinstall": "npx only-allow pnpm"
-	},
+	"new": "tsx --loader esm-loader-yaml scripts/new.ts",
+	"dev": "astro dev",
+	"check": "astro check",
+	"build": "astro build",
+	"preview": "astro preview",
+	"format": "biome format --write",
+	"lint": "biome lint",
+	"count": "git log --pretty=tformat: --numstat | grep -v package | awk '{ A += $1; S += $2; T += $1 - $2 } END { printf \"+ %s\tLines\n- %s\tLines\n= %s\tLines\n\", A, S, T }'",
+	"prepare": "husky"
+  },
 	"dependencies": {
 		"@astrojs/markdown-remark": "^6.3.10",
 		"@astrojs/mdx": "^4.3.13",

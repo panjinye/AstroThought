@@ -6,7 +6,8 @@
 		"bradlc.vscode-tailwindcss",
 		"svelte.svelte-vscode",
 		"biomejs.biome",
-		"unifiedjs.vscode-mdx"
+		"unifiedjs.vscode-mdx",
+		"ms-ceintl.vscode-language-pack-zh-hans"
 	],
 	"unwantedRecommendations": []
 }
